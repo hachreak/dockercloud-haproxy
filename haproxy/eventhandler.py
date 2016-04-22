@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 
 import dockercloud
 from compose.cli.docker_client import docker_client
@@ -57,7 +58,12 @@ def listen_dockercloud_events():
     events.on_open(on_websocket_open)
     events.on_close(on_websocket_close)
     events.on_message(on_cloud_event)
-    events.run_forever()
+    while True:
+        try:
+            events.run_forever()
+        except dockercloud.AuthError as e:
+            logger.info("Auth error: %s, retry in 1 hour" % e)
+            time.sleep(3600)
 
 
 def listen_docker_events():
