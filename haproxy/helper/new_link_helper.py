@@ -1,5 +1,7 @@
 import logging
 
+from haproxy.config import INCLUDE_ONLY_PORTS
+
 logger = logging.getLogger("haproxy")
 
 
@@ -78,7 +80,11 @@ def _calc_links(docker, linked_compose_services, project):
 
 def _get_container_endpoints(container, container_name):
     endpoints = {}
-    container_endpoints = container.get("Config", {}).get("ExposedPorts", {})
+    if INCLUDE_ONLY_PORTS:
+        container_endpoints = {k: {} for k in INCLUDE_ONLY_PORTS.split(",")}
+    else:
+        container_endpoints = container.get(
+            "Config", {}).get("ExposedPorts", {})
     for k, v in container_endpoints.iteritems():
         if k:
             terms = k.split("/", 1)
